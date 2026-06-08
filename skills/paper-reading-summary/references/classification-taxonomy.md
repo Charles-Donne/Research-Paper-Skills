@@ -21,6 +21,8 @@ Use these fields for `metadata.json`, `retrieval.md`, Zotero tags, and optional 
 - `one_sentence_summary`: one concise Chinese sentence that gives a high-level overview of the paper; this is the default Zotero Style 简记 payload, stored as a `remark:` line in Zotero `Extra`.
 - `status`: `to-read`, `skimmed`, `read`, `deep-read`, `used-in-paper`, `archived`.
 
+Section `0. Concise Summary` is the source of truth for the paper's quick-retrieval overview. Extract its structured fields into `metadata.json` and `retrieval.md`, then use those fields to inform controlled tag planning. Do not directly convert long overview sentences into tags.
+
 ## Tag Layers
 
 Use three layers instead of one overloaded tag list:

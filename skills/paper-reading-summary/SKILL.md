@@ -1,15 +1,22 @@
 ---
 name: paper-reading-summary
-description: Read and summarize academic papers from local PDFs, URLs, web search, or Zotero, then produce structured Chinese reading reports and concise retrieval summaries. Use when Codex is asked to understand a paper, generate a detailed reading report, extract topic/problem/method/innovation/significance, create reusable reading notes, or optionally synchronize summaries and lightweight metadata to Zotero, local folders, Obsidian/Dataview, or Feishu/Lark.
+description: Quickly read and deeply summarize academic papers from local PDFs, URLs, web search, or Zotero, then produce structured Chinese reading notes with a Section 0 overview for retrieval and Sections 1-6 for detailed understanding. Use when Codex is asked to understand a paper, generate a complete reading note, extract topic/problem/method/innovation/significance, build reusable retrieval records, compare papers, or optionally synchronize summaries and lightweight metadata to Zotero, local folders, Obsidian/Dataview, or Feishu/Lark.
 ---
 
 # Paper Reading And Summary
 
 ## Overview
 
-Use this skill to carefully read and understand a paper, produce a structured Chinese reading report, and package the result for later retrieval. Zotero, local-folder, and cloud synchronization are optional downstream steps rather than the primary purpose.
+Use this skill to quickly understand and deeply analyze a paper, produce a structured Chinese reading note, and package the result for later retrieval and comparison. Zotero, local-folder, and cloud synchronization are optional downstream steps rather than the primary purpose.
 
 Default to one management workflow. Split work into a separate Zotero-focused skill only if the user mainly asks for long-running library curation, duplicate cleanup, collection restructuring, or tag taxonomy maintenance without reading papers.
+
+The reading note has two levels:
+
+- `0. Concise Summary` is the overview and retrieval hub. It contains `Topic`, `Problem`, `Method`, `Innovation`, `Significance`, and one Chinese one-sentence summary.
+- Sections `1–6` form the detailed reading report: motivation, innovations, main methods and evidence, impact, clarifications, and additional notes.
+
+Extract Section `0` into `retrieval.md` and `metadata.json` for fast search, comparison, classification, and tag planning. Keep tags as separate controlled metadata rather than treating the overview text itself as literal tags.
 
 ## Workflow
 
@@ -38,6 +45,8 @@ Default to one management workflow. Split work into a separate Zotero-focused sk
    - The subagent reading report is the source of truth for `note.md`. Do not prepend YAML frontmatter, metadata blocks, prompt text, tags, index entries, or extra sections to `note.md`.
    - Preserve the reading report's section order and heading structure from `references/reading-report-prompt.md`; the body may be Chinese because the prompt requests Chinese output.
    - Ensure `## 0. Concise Summary` includes `Topic`, `Problem`, `Method`, `Innovation`, `Significance`, and one `**One-sentence summary**: ...` line. The entire reading report must be written in Chinese, including the one-sentence summary. The summary must be a concise Chinese one-sentence overview of the paper, not a mechanical merge of the five fields.
+   - Treat Section `0` as the paper's quick-reading overview: it must let a reader understand the paper's setting, gap, approach, novelty, and value without reading the remaining sections.
+   - Treat Sections `1–6` as the deep-reading layer. Cover the paper's motivation, innovations, method architecture, algorithms, mathematical formulations, models, training, datasets, experiments, technical details, impact, limitations, simplified explanations, related work, and significant figures/tables.
 
 4. Organize files locally.
    - Use `scripts/organize_paper.py` to create a stable folder with `metadata.json`, `note.md`, optional `retrieval.md`, and optional `figures/` images.
@@ -45,6 +54,7 @@ Default to one management workflow. Split work into a separate Zotero-focused sk
    - Put exactly four front-link fields before `## 0. Concise Summary` in `note.md`, separated from the report by `---`: `Title`, `Paper link`, `Web/project link`, and `GitHub link`.
    - Put exactly the same four fields before `## Core Content` in `retrieval.md`: `Title`, `Paper link`, `Web/project link`, and `GitHub link`.
    - Build `## Core Content` by extracting `Topic`, `Problem`, `Method`, `Innovation`, and `Significance` from section `0. Concise Summary` of the generated report. Do not independently rewrite these fields unless extraction fails.
+   - Use the structured fields extracted from Section `0` as the core retrieval record in `retrieval.md` and `metadata.json`. Use them to inform, but not automatically replace, controlled `domain_tags`, `method_tags`, and `project_tags`.
    - Store the overview sentence in `metadata.json` as `one_sentence_summary`; `organize_paper.py` can synthesize a fallback from available metadata when the report does not include it.
    - Put other useful bibliographic/management fields after `## Core Content`, under a secondary metadata section. This can include authors, publication, date, identifiers, PDF path, Zotero key, BibTeX key, and note path. Do not put tags or index-entry prose in `retrieval.md`.
    - Do not copy PDFs by default. Record the Zotero PDF path or source URL in metadata. Copy a PDF only when the user asks or when `--copy-pdf` is explicitly used.

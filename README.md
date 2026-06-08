@@ -8,19 +8,16 @@ The repository focuses on practical, reproducible research assistance: reading p
 
 ### `paper-reading-summary`
 
-Read academic papers and produce structured Chinese reading reports and concise summaries.
+Quickly understand academic papers and generate structured Chinese reading notes that support both rapid retrieval and deep study.
 
-Core capabilities:
+The skill produces a two-level reading result:
 
-- Resolve papers from Zotero, local PDFs, or official web sources.
-- Verify bibliographic metadata and official project/code links.
-- Generate detailed Chinese reading reports from a reusable English prompt.
-- Extract concise `Topic`, `Problem`, `Method`, `Innovation`, and `Significance` summaries.
-- Create reproducible local reading packets containing `note.md`, `retrieval.md`, and `metadata.json`.
-- Synchronize the one-sentence Chinese summary to Zotero Style's visible **简记** field.
-- Optionally synchronize lightweight tags, collection-aligned folders, and Feishu/Lark documents.
+1. **Quick overview and retrieval layer**: Section `0. Concise Summary` explains the paper through `Topic`, `Problem`, `Method`, `Innovation`, `Significance`, and a one-sentence Chinese overview.
+2. **Detailed reading layer**: Sections `1–6` explain motivation, innovations, methods, algorithms, models, training, datasets, experiments, technical details, impact, limitations, simplifications, related work, and important figures/tables.
 
-Synchronization and organization are downstream conveniences. The skill's primary purpose is paper reading, understanding, and summarization.
+Section `0` is the retrieval hub for each paper. Its structured fields are extracted into `metadata.json` and `retrieval.md` for fast search, comparison, classification, and tag planning. The one-sentence overview can also be synchronized to Zotero Style's visible **简记** field.
+
+Synchronization and organization are downstream conveniences. The primary purpose is to read a paper quickly, understand it deeply, and preserve the result as a reusable reading note.
 
 ## Repository Layout
 
@@ -91,6 +88,54 @@ Replace an existing installation:
 Restart the agent runtime after installation so it discovers the new skills.
 
 ## Paper Reading And Summary
+
+### Reading Note Structure
+
+Every complete reading note follows this structure:
+
+```text
+0. Concise Summary
+   Topic · Problem · Method · Innovation · Significance
+   One-sentence summary
+1. Motivation
+2. Innovation
+3. Main Content
+   3.1 Design Architecture & Methods
+   3.2 Key Algorithms & Mathematical Derivations
+   3.3 Models & Training & Dataset
+   3.4 Experimental Setup & Results
+   3.5 Technical Details
+4. Significance and Impact
+5. Clarifications and Simplifications
+6. Additional Notes
+```
+
+The note is designed for two reading speeds:
+
+- Read only Section `0` to quickly decide whether the paper is relevant.
+- Read Sections `1–6` for a detailed understanding of the paper and its evidence.
+
+### Reading Packet
+
+Each organized paper can produce:
+
+| Artifact | Purpose |
+| --- | --- |
+| `note.md` | Complete structured reading note covering Sections `0–6`. |
+| `retrieval.md` | Compact search card extracted from Section `0`, plus bibliographic metadata. |
+| `metadata.json` | Machine-readable metadata, core overview fields, layered tags, status, and integration identifiers. |
+| `figures/` | Optional important figure and table snapshots inserted near the relevant explanations. |
+| `INDEX.md` | Minimal library-level directory for navigating organized papers. |
+
+Section `0` supplies the core retrieval fields stored in `retrieval.md` and `metadata.json`. These fields also inform domain, method, and project tag planning; tags are kept separately so they remain concise and controllable.
+
+### Core Workflow
+
+1. Resolve the paper from Zotero, a local PDF, or an official web source.
+2. Verify bibliographic metadata and official project/code links.
+3. Read the full paper and generate a structured Chinese note covering Sections `0–6`.
+4. Extract Section `0` into reusable retrieval and metadata records.
+5. Optionally synchronize the one-sentence overview, lightweight tags, folders, and cloud documents.
 
 Example prompts:
 
