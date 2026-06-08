@@ -1,0 +1,194 @@
+---
+name: paper-reading-summary
+description: Read and summarize academic papers from local PDFs, URLs, web search, or Zotero, then produce structured Chinese reading reports and concise retrieval summaries. Use when Codex is asked to understand a paper, generate a detailed reading report, extract topic/problem/method/innovation/significance, create reusable reading notes, or optionally synchronize summaries and lightweight metadata to Zotero, local folders, Obsidian/Dataview, or Feishu/Lark.
+---
+
+# Paper Reading And Summary
+
+## Overview
+
+Use this skill to carefully read and understand a paper, produce a structured Chinese reading report, and package the result for later retrieval. Zotero, local-folder, and cloud synchronization are optional downstream steps rather than the primary purpose.
+
+Default to one management workflow. Split work into a separate Zotero-focused skill only if the user mainly asks for long-running library curation, duplicate cleanup, collection restructuring, or tag taxonomy maintenance without reading papers.
+
+## Workflow
+
+1. Resolve the paper source.
+   - Prefer Zotero when available. Search Zotero first for known papers and use Zotero as the primary library of record.
+   - If a Zotero item has a PDF attachment, read the attachment in place instead of copying it into the local note folder. Use `scripts/zotero_pdf_path.py <item-key> --first` to get the local PDF path.
+   - If the paper is not in Zotero, use user-provided PDF/URL/DOI/arXiv/OpenReview/publisher page or web search to find the official source. Prefer arXiv, OpenReview, publisher, DOI, project, or author pages.
+   - When a reliable BibTeX/RIS/connector route exists, import the paper into Zotero before organizing notes. If import or PDF attachment is blocked, keep the official source URL in metadata and report the blocker.
+   - If working in a project with local paper-index instructions, follow that local index before web search.
+   - Use web search when the paper is not local or metadata needs verification; prefer official sources such as arXiv, OpenReview, publisher pages, project pages, or DOI landing pages.
+   - Do not use unauthorized PDF sources.
+
+2. Capture metadata before reading.
+   - Record title, authors, date, venue/source, URL/DOI/arXiv id, local PDF path, Zotero item key, BibTeX key when available, and retrieval date. Use `date` for the paper's first public release date when available, preferably the arXiv v1 submission date for preprints.
+   - Verify the latest formal publication/version online before finalizing `publication`, folder name, and index label. Prefer OpenReview/conference/publisher records over arXiv when a paper has since been accepted.
+   - Verify official project and GitHub/code links online. Leave `github_url` blank if no official repository is found; do not use unrelated repos.
+   - Do not invent missing metadata. Mark unknown fields explicitly.
+
+3. Read and summarize with a subagent.
+   - Always spawn a fresh subagent for paper reading tasks. Use `fork_context=false`; do not reuse the main conversation as the reading context.
+   - Pass only the paper source, verified metadata, and the exact reading prompt. Do not pass unrelated project chat history.
+   - After receiving the subagent's final result and integrating it into `note.md`, close the subagent.
+   - Use `references/reading-report-prompt.md` as the single source of truth for the reading report prompt. Do not paraphrase, translate, restructure, or duplicate this prompt in another reference file.
+   - Use `references/blank-agent-prompt.md` only as the mandatory subagent handoff scaffold.
+   - Require claims to be grounded in the paper text. Separate paper claims from the reader's interpretation.
+   - The subagent reading report is the source of truth for `note.md`. Do not prepend YAML frontmatter, metadata blocks, prompt text, tags, index entries, or extra sections to `note.md`.
+   - Preserve the reading report's section order and heading structure from `references/reading-report-prompt.md`; the body may be Chinese because the prompt requests Chinese output.
+   - Ensure `## 0. Concise Summary` includes `Topic`, `Problem`, `Method`, `Innovation`, `Significance`, and one `**One-sentence summary**: ...` line. The entire reading report must be written in Chinese, including the one-sentence summary. The summary must be a concise Chinese one-sentence overview of the paper, not a mechanical merge of the five fields.
+
+4. Organize files locally.
+   - Use `scripts/organize_paper.py` to create a stable folder with `metadata.json`, `note.md`, optional `retrieval.md`, and optional `figures/` images.
+   - Keep machine-readable fields only in `metadata.json`. Do not duplicate them as Markdown frontmatter in `note.md` or `retrieval.md`.
+   - Put exactly four front-link fields before `## 0. Concise Summary` in `note.md`, separated from the report by `---`: `Title`, `Paper link`, `Web/project link`, and `GitHub link`.
+   - Put exactly the same four fields before `## Core Content` in `retrieval.md`: `Title`, `Paper link`, `Web/project link`, and `GitHub link`.
+   - Build `## Core Content` by extracting `Topic`, `Problem`, `Method`, `Innovation`, and `Significance` from section `0. Concise Summary` of the generated report. Do not independently rewrite these fields unless extraction fails.
+   - Store the overview sentence in `metadata.json` as `one_sentence_summary`; `organize_paper.py` can synthesize a fallback from available metadata when the report does not include it.
+   - Put other useful bibliographic/management fields after `## Core Content`, under a secondary metadata section. This can include authors, publication, date, identifiers, PDF path, Zotero key, BibTeX key, and note path. Do not put tags or index-entry prose in `retrieval.md`.
+   - Do not copy PDFs by default. Record the Zotero PDF path or source URL in metadata. Copy a PDF only when the user asks or when `--copy-pdf` is explicitly used.
+   - Default local note root is `~/paper`; users can override it with `PAPER_LIBRARY_ROOT` or `--library-root`.
+   - Use a project-specific root only when the user explicitly specifies one or project instructions explicitly require one. For example, use a SpaceVLN folder only when the user asks to store the note under SpaceVLN or the project task says to do so.
+   - Mirror the primary Zotero collection path physically under the configured paper-library root.
+   - Keep one paper per folder using `<short-title>--<publication-year>/`, e.g. `vision-language-navigation--cvpr2018`.
+   - Maintain a single root `INDEX.md` tree directory. Keep it minimal: classification path plus paper short title/version linking to `note.md`.
+   - For classification fields, read `references/classification-taxonomy.md`. Use layered tags: `domain_tags`, `method_tags`, `project_tags`, and a separate lightweight `zotero_tags` list for tags that should be mirrored into Zotero.
+   - For Obsidian and Dataview conventions, read `references/obsidian-dataview.md`.
+
+5. Update Zotero.
+   - Reads/search/export are safe.
+   - Zotero reads require the desktop local API, normally at `http://127.0.0.1:23119`. Zotero writes performed by the bundled scripts require a Zotero MCP write bridge, normally at `http://127.0.0.1:23120/mcp`.
+   - Zotero Style's visible 简记 field requires the Zotero Style plugin. It is stored as a `remark:` line in Zotero `Extra`.
+   - For this skill, a user request to read and organize a paper implies permission to add the paper to Zotero when missing and to apply lightweight reading-workflow tags generated from the note, unless the user asks for dry-run/no-write behavior.
+   - When a paper has a verified formal publication newer than its imported arXiv/preprint record, prefer updating Zotero's bibliographic metadata to the formal record. For conference papers, use Zotero item type `conferencePaper`, set `conferenceName` to the compact venue label such as `ICLR 2026`, set `proceedingsTitle` to the full venue name when known, and keep arXiv information in DOI/archive/extra fields when useful.
+   - Keep Zotero tags lightweight and user-facing. Default to two Zotero tags when the user does not specify otherwise: one paper-kind tag such as `会议论文` or `期刊论文`, and one venue/version tag such as `ICLR 2026`. Keep detailed topic/method/search tags in local `metadata.json`, not in Zotero tags.
+   - Zotero's local `/api/` routes are read-only. For writes, prefer a Zotero MCP/write bridge or connector import. Change item type only through Zotero-supported write tools or an explicitly requested, backed-up local database migration.
+   - For broad library cleanup, duplicate removal, collection restructuring, or destructive changes, show the planned item keys and changes first.
+   - Use the Zotero helper for search, export, import-bibtex/import-ris, children, fulltext, and file-url.
+   - Use `scripts/zotero_sync_note.py` to sync `metadata.one_sentence_summary` into Zotero Style 简记, stored as a `remark:` line in Zotero `Extra`. Preserve all existing non-`remark:` lines in `Extra`; do not write the overview into `abstractNote`. The script is dry-run by default; pass `--yes` only after confirming the target item. Use `--sync-tags` when also mirroring `metadata.zotero_tags`.
+   - Use `scripts/zotero_tag_items.py` for tag add/remove/replace dry-runs and confirmed tag edits.
+
+6. Return a concise handoff.
+   - Include local folder path, paper source, Zotero item key if any, tags added/planned, and the `note.md` path.
+   - Mention any metadata gaps, missing PDF, paywall, failed import, or unverified claims.
+   - If the user asks to publish or mirror to Feishu/Lark, read `references/feishu-sync.md` and prefer `scripts/feishu_sync.py` for search/create/update/write-back orchestration; use the appropriate Lark document skill for manual follow-up edits.
+
+## Local Organization
+
+Create reading packets with:
+
+```bash
+python3 <skill-dir>/scripts/organize_paper.py \
+	  --library-root "${PAPER_LIBRARY_ROOT:-$HOME/paper}" \
+	  --title "<paper title>" \
+	  --date "<first-public-release-date>" \
+  --pdf "<zotero-or-local-paper.pdf>" \
+  --url "<source-url>" \
+  --zotero-key "<item-key>" \
+  --bibtex-key "<bibtex-key>" \
+  --publication "CVPR 2026" \
+  --paper-url "<official-paper-url>" \
+  --web-url "<project-page-if-any>" \
+  --github-url "<github-repo-if-any>" \
+  --collection-path "VLN/Classic" \
+  --short-title "Vision-and-Language Navigation" \
+  --tag "vln" --tag "spatial-memory" \
+  --domain-tag "embodied-ai" \
+  --method-tag "spatial-memory" \
+  --project-tag "SpaceVLN-related" \
+  --zotero-tag "会议论文" \
+  --zotero-tag "CVPR 2026" \
+  --topic "vision-language navigation" \
+  --index-summary "Use this paper when comparing zero-shot VLN methods with explicit spatial memory." \
+  --problem "continuous navigation with sparse spatial grounding" \
+  --method "structured VLM reasoning with spatial memory" \
+  --innovation "explicit spatial topology for zero-shot navigation" \
+  --significance "improves retrieval and comparison for SpaceVLN related work" \
+  --one-sentence-summary "本文聚焦视觉语言导航，针对连续环境中的稀疏空间 grounding 问题，提出带空间记忆的结构化 VLM 推理方法，创新在于显式空间拓扑建模，意义在于支持 SpaceVLN 相关工作检索和对比。" \
+  --summary "<summary.md>"
+```
+
+If the PDF is not local yet, omit `--pdf` and store the verified source URL in metadata. If the PDF is in Zotero, pass the Zotero attachment path as `--pdf`; it will be recorded but not copied. Use `--copy-pdf` only when a standalone archive copy is desired. Add `--dry-run` before making folders when planning a large batch.
+
+Get a Zotero PDF path:
+
+```bash
+python3 <skill-dir>/scripts/zotero_pdf_path.py <zotero-item-key> --first
+```
+
+Insert figure/table screenshots into `note.md` when helpful:
+
+```bash
+python3 <skill-dir>/scripts/pdf_figure_snapshot.py \
+  --pdf "<zotero-pdf-path>" \
+  --page 3 \
+  --out "<paper-folder>/figures/fig-2.png"
+```
+
+Then reference it in the relevant note section:
+
+```markdown
+![Figure 2: System architecture](figures/fig-2.png)
+```
+
+For precise crops, pass `--bbox "x0,top,x1,bottom"` in PDF points. If exact crop coordinates are not known, render the full relevant page and note what to inspect.
+For final notes, use cropped figure/table regions, not full-page screenshots. If the note body explicitly explains a Figure/Table, insert that image immediately after the relevant paragraph. If a Figure/Table is not discussed in the main body but is still worth keeping, put it after `## 6. Additional Notes` in `## 7. Figures and Tables`, split into `### 7.1 Figures` and `### 7.2 Tables`, with a brief explanation. Do not mention a figure/table in `## 3. Main Content` while placing its image only in section 7. Do not duplicate a full figure/table laundry list in `## 6. Additional Notes`.
+
+## Zotero Tag Editing
+
+Dry-run first:
+
+```bash
+python3 <skill-dir>/scripts/zotero_tag_items.py \
+  --item-key UKRJFRVC \
+  --add "vision-language navigation" \
+  --add "benchmark" \
+  --dry-run
+```
+
+Write only after confirmation:
+
+```bash
+python3 <skill-dir>/scripts/zotero_tag_items.py \
+  --item-key UKRJFRVC \
+  --add "vision-language navigation" \
+  --yes
+```
+
+For tag renames on specific items, use `--replace "old tag=new tag"`. For removing tags, use `--remove "<tag>"`. Avoid global tag deletion unless the user asks for global cleanup and the affected items have been shown.
+
+Sync the one-sentence summary to Zotero Style 简记 (`remark:` in `Extra`):
+
+```bash
+python3 <skill-dir>/scripts/zotero_sync_note.py \
+  --paper-folder "<paper-folder>" \
+  --sync-tags \
+  --yes
+```
+
+Mirror the reading packet to Feishu/Lark after confirming the target:
+
+```bash
+python3 <skill-dir>/scripts/feishu_sync.py \
+  --paper-folder "<paper-folder>" \
+  --yes
+```
+
+Run a non-mutating readiness check:
+
+```bash
+python3 <skill-dir>/scripts/diagnose.py
+```
+
+## Output Shape
+
+Use `references/reading-report-prompt.md` for the exact subagent reading prompt, `references/reading-output-template.md` for the local `note.md` shape, `retrieval.md` for per-paper quick search cards, and root `INDEX.md` for the tree directory. `note.md` is a pure reading report plus the allowed `One-sentence summary` line; `retrieval.md` is a concise search card; `metadata.json` is the only machine-readable metadata store. For paper batches, keep final chat output compact and point to created files instead of pasting every summary.
+
+## Safety Rules
+
+- Do not invent results, citations, datasets, or ablation outcomes.
+- Keep metadata provenance clear: local PDF, Zotero, official web source, or user-provided text.
+- Never expose API keys or secrets found in Zotero preferences or exported files.
+- Do not mutate Zotero without explicit write confirmation for the concrete items and changes.
+- If a web source and Zotero/local metadata conflict, report the conflict and keep both values in metadata until resolved.
