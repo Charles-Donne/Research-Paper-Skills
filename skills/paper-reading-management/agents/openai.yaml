@@ -1,0 +1,4 @@
+interface:
+  display_name: "Paper Reading Management"
+  short_description: "Manage paper reading, notes, tags, and Zotero"
+  default_prompt: "Use $paper-reading-management to find, read, summarize, tag, and organize this paper into my local library."

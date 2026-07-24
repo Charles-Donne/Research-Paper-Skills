@@ -99,7 +99,7 @@ def mcp_tool_call(name: str, arguments: dict) -> dict:
             "params": {
                 "protocolVersion": "2024-11-05",
                 "capabilities": {},
-                "clientInfo": {"name": "paper-reading-summary", "version": "1.0"},
+                "clientInfo": {"name": "paper-reading-management", "version": "1.0"},
             },
         }
     )

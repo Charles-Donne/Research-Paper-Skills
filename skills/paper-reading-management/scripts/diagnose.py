@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Diagnose the paper-reading-summary local pipeline without writing data."""
+"""Diagnose the paper-reading-management local pipeline without writing data."""
 
 from __future__ import annotations
 
@@ -53,7 +53,7 @@ def check_zotero_mcp() -> dict:
         "params": {
             "protocolVersion": "2024-11-05",
             "capabilities": {},
-            "clientInfo": {"name": "paper-reading-summary-diagnose", "version": "1.0"},
+            "clientInfo": {"name": "paper-reading-management-diagnose", "version": "1.0"},
         },
     }
     try:

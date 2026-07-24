@@ -7,7 +7,7 @@ Obsidian is optional. Markdown files remain portable, and metadata stays in `met
 Default per-paper layout:
 
 ```text
-~/paper/
+${PAPER_LIBRARY_ROOT:-$HOME/paper}/
   INDEX.md
   <Zotero top collection>/
     <Zotero child collection>/
@@ -33,7 +33,7 @@ Do not include YAML frontmatter in `note.md` or `retrieval.md` for this workflow
   "status": "deep-read",
   "paper_type": "method",
   "topic": "embodied AI",
-  "paper_pdf": "~/Zotero/storage/.../paper.pdf"
+  "paper_pdf": "/Users/.../Zotero/storage/.../paper.pdf"
 }
 ```
 

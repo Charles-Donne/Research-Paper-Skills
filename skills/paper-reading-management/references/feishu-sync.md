@@ -13,7 +13,7 @@ Keep the local folder as the source of truth:
 
 Feishu should mirror or publish selected content, not replace the local library.
 
-Default local root: `~/paper`, or the value of `PAPER_LIBRARY_ROOT`. Use a project-specific root only when the user or project instructions explicitly request it.
+Default local root: `${PAPER_LIBRARY_ROOT:-$HOME/paper}`. Use a project-specific root only when the user or project instructions explicitly request it.
 
 ## Recommended Cloud Shape
 

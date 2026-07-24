@@ -3,13 +3,13 @@
 Default root:
 
 ```text
-~/paper/
+${PAPER_LIBRARY_ROOT:-$HOME/paper}/
 ```
 
 Recommended structure mirrors the primary Zotero collection path:
 
 ```text
-~/paper/
+${PAPER_LIBRARY_ROOT:-$HOME/paper}/
   INDEX.md
   <Zotero top collection>/
     <Zotero child collection>/
@@ -23,7 +23,7 @@ Recommended structure mirrors the primary Zotero collection path:
 Example:
 
 ```text
-~/paper/
+${PAPER_LIBRARY_ROOT:-$HOME/paper}/
   INDEX.md
   VLN/
     Classic/

@@ -6,18 +6,18 @@ The repository focuses on practical, reproducible research assistance: reading p
 
 ## Included Skills
 
-### `paper-reading-summary`
+### `paper-reading-management`
 
-Quickly understand academic papers and generate structured Chinese reading notes that support both rapid retrieval and deep study.
+Manage an end-to-end academic paper workflow across official sources, Zotero, local reading packets, and optional Feishu/Lark publishing.
 
-The skill produces a two-level reading result:
+The skill enforces a reproducible reading process:
 
-1. **Quick overview and retrieval layer**: Section `0. Concise Summary` explains the paper through `Topic`, `Problem`, `Method`, `Innovation`, `Significance`, and a one-sentence Chinese overview.
-2. **Detailed reading layer**: Sections `1–6` explain motivation, innovations, methods, algorithms, models, training, datasets, experiments, technical details, impact, limitations, simplifications, related work, and important figures/tables.
-
-Section `0` is the retrieval hub for each paper. Its structured fields are extracted into `metadata.json` and `retrieval.md` for fast search, comparison, classification, and tag planning. The one-sentence overview can also be synchronized to Zotero Style's visible **简记** field.
-
-Synchronization and organization are downstream conveniences. The primary purpose is to read a paper quickly, understand it deeply, and preserve the result as a reusable reading note.
+1. Resolve and verify the paper from Zotero or official sources.
+2. Use one clean, independent subagent per paper.
+3. Produce a structured Chinese reading report with figure/table markers.
+4. Organize `note.md`, `retrieval.md`, and `metadata.json` under the Zotero collection path.
+5. Audit note structure, reading isolation, and inserted figure/table files before updating the library index.
+6. Keep exactly two lightweight Zotero tags by default: one paper-kind tag and one venue/source/version tag.
 
 ## Repository Layout
 
@@ -27,7 +27,7 @@ Research-Paper-Skills/
 ├── LICENSE
 ├── install.sh
 └── skills/
-    └── paper-reading-summary/
+    └── paper-reading-management/
         ├── SKILL.md
         ├── agents/
         ├── references/
@@ -76,18 +76,18 @@ Install every skill in the repository:
 Install only the paper-reading skill:
 
 ```bash
-./install.sh paper-reading-summary
+./install.sh paper-reading-management
 ```
 
 Replace an existing installation:
 
 ```bash
-./install.sh --force paper-reading-summary
+./install.sh --force paper-reading-management
 ```
 
 Restart the agent runtime after installation so it discovers the new skills.
 
-## Paper Reading And Summary
+## Paper Reading Management
 
 ### Reading Note Structure
 
@@ -140,11 +140,11 @@ Section `0` supplies the core retrieval fields stored in `retrieval.md` and `met
 Example prompts:
 
 ```text
-Use $paper-reading-summary to read this paper and generate a structured Chinese reading report.
+Use $paper-reading-management to read this paper and generate a structured Chinese reading report.
 ```
 
 ```text
-Use $paper-reading-summary to summarize this Zotero paper and synchronize the result to Zotero.
+Use $paper-reading-management to summarize this Zotero paper and synchronize the result to Zotero.
 ```
 
 The bundled reading prompt is written in English for reuse across models, while the generated reading report, including the one-sentence summary, is required to be Chinese.
@@ -158,7 +158,7 @@ export PAPER_LIBRARY_ROOT="$HOME/paper"
 Run the diagnostic:
 
 ```bash
-python3 skills/paper-reading-summary/scripts/diagnose.py
+python3 skills/paper-reading-management/scripts/diagnose.py
 ```
 
 ## Zotero Style 简记
@@ -172,7 +172,7 @@ remark: 一句话中文概览
 The sync helper preserves existing non-`remark:` lines such as arXiv and OpenReview identifiers and does not overwrite Zotero's abstract field:
 
 ```bash
-python3 skills/paper-reading-summary/scripts/zotero_sync_note.py \
+python3 skills/paper-reading-management/scripts/zotero_sync_note.py \
   --paper-folder "<paper-folder>" \
   --sync-tags \
   --yes

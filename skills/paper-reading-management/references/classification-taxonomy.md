@@ -21,8 +21,6 @@ Use these fields for `metadata.json`, `retrieval.md`, Zotero tags, and optional 
 - `one_sentence_summary`: one concise Chinese sentence that gives a high-level overview of the paper; this is the default Zotero Style 简记 payload, stored as a `remark:` line in Zotero `Extra`.
 - `status`: `to-read`, `skimmed`, `read`, `deep-read`, `used-in-paper`, `archived`.
 
-Section `0. Concise Summary` is the source of truth for the paper's quick-retrieval overview. Extract its structured fields into `metadata.json` and `retrieval.md`, then use those fields to inform controlled tag planning. Do not directly convert long overview sentences into tags.
-
 ## Tag Layers
 
 Use three layers instead of one overloaded tag list:
@@ -30,7 +28,10 @@ Use three layers instead of one overloaded tag list:
 - `domain_tags`: field labels, e.g. `embodied-ai`, `vln`, `robot-navigation`, `multimodal-llm`.
 - `method_tags`: technical labels, e.g. `spatial-memory`, `topological-map`, `scene-graph`, `rl`, `diffusion`, `rag`, `prompting`.
 - `project_tags`: user/project labels, e.g. `SpaceVLN-related`, `baseline`, `related-work`, `experiment-claim`, `citation-candidate`.
-- `zotero_tags`: the lightweight tags to mirror into Zotero, usually only paper kind and venue/version such as `会议论文`, `ICLR 2026`.
+- `zotero_tags`: exactly two lightweight hashtag tags to mirror into Zotero by default:
+  - one kind tag, one of `#会议论文`, `#期刊论文`, `#预印本`, or `#网页资料`;
+  - one venue/source/version tag such as `#NeurIPS 2025`, `#ICLR 2026`, `#arXiv 2026`, `#TMLR 2024`, or a compact web/source label such as `#Anthropic`.
+  Do not put collection/project tags such as `#Embodied Agent` here. Do not mirror `domain_tags`, `method_tags`, `project_tags`, or free-form topic/search tags into Zotero.
 
 ## Quick Retrieval Entry
 

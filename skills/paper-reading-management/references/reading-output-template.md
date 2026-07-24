@@ -60,4 +60,14 @@ When adding images, replace exact figure/table markers from the generated report
 ![Figure X](figures/fig-x.png)
 ```
 
-If the report body explicitly explains a Figure/Table, insert the cropped image immediately after that paragraph. Put only figures/tables that are not discussed in the main body into `## 7. Figures and Tables`, split into `### 7.1 Figures` and `### 7.2 Tables`, with a short explanation for each. Avoid duplicating a full figure/table list in `## 6. Additional Notes`.
+If the report body explicitly explains a Figure/Table, insert the cropped image immediately after that paragraph. All `<!-- figure: ... -->` and `<!-- table: ... -->` markers from the generated report must be replaced before completion; leaving markers in `note.md` is an audit failure.
+
+Put only figures/tables that are not discussed in the main body into `## 7. Figures and Tables`, split into `### 7.1 Figures` and `### 7.2 Tables`, with a short explanation for each. Avoid duplicating a full figure/table list in `## 6. Additional Notes`.
+
+Audit before handoff:
+
+- The reading report came from one fresh isolated subagent for this paper.
+- `note.md` has exactly one `**One-sentence summary**:` line.
+- Every discussed Figure/Table has a local image inserted nearby.
+- Every image path exists under this paper folder.
+- Cropped figure/table regions are preferred; full-page snapshots are allowed only as labeled fallbacks.
