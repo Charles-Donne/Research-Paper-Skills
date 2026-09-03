@@ -31,10 +31,10 @@ The Feishu doc should include:
 - Concise summary.
 - Motivation and innovation.
 - Main content.
-- Important figures/tables notes.
+- Important figure/table discussion and manual insertion markers.
 - Quick retrieval fields.
 - Local folder path and Zotero item key.
-- Selected figure/table screenshots only when useful and permitted by the local source.
+- No generated or embedded figure/table screenshots; the reader may add them manually after review.
 
 ## Tooling
 

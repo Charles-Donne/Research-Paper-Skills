@@ -28,10 +28,10 @@ Use three layers instead of one overloaded tag list:
 - `domain_tags`: field labels, e.g. `embodied-ai`, `vln`, `robot-navigation`, `multimodal-llm`.
 - `method_tags`: technical labels, e.g. `spatial-memory`, `topological-map`, `scene-graph`, `rl`, `diffusion`, `rag`, `prompting`.
 - `project_tags`: user/project labels, e.g. `SpaceVLN-related`, `baseline`, `related-work`, `experiment-claim`, `citation-candidate`.
-- `zotero_tags`: exactly two lightweight hashtag tags to mirror into Zotero by default:
+- `zotero_tags`: exactly two lightweight hashtag tags that replace all existing Zotero tags during confirmed sync:
   - one kind tag, one of `#会议论文`, `#期刊论文`, `#预印本`, or `#网页资料`;
   - one venue/source/version tag such as `#NeurIPS 2025`, `#ICLR 2026`, `#arXiv 2026`, `#TMLR 2024`, or a compact web/source label such as `#Anthropic`.
-  Do not put collection/project tags such as `#Embodied Agent` here. Do not mirror `domain_tags`, `method_tags`, `project_tags`, or free-form topic/search tags into Zotero.
+  Remove legacy/unrelated Zotero tags. Do not put collection/project tags such as `#Embodied Agent` here. Do not mirror `domain_tags`, `method_tags`, `project_tags`, or free-form topic/search tags into Zotero.
 
 ## Quick Retrieval Entry
 

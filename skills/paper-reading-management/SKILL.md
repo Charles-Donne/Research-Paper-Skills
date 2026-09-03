@@ -7,7 +7,7 @@ description: Manage academic paper reading workflows from local PDFs, URLs, web 
 
 ## Overview
 
-Use this skill to turn a paper request into a reproducible reading packet: Zotero-first source resolution, mandatory independent paper reading, local note organization, a one-sentence summary for Zotero Style 简记 stored as a `remark:` line in Zotero `Extra`, optional figure snapshots, optional Zotero tagging/import, and optional cloud publishing.
+Use this skill to turn a paper request into a reproducible reading packet: Zotero-first source resolution, mandatory independent paper reading, local note organization, a one-sentence summary for retrieval and Zotero Style 简记, manual figure/table placeholders without image extraction, optional Zotero tagging/import, and optional cloud publishing.
 
 Default to one management workflow. Split work into a separate Zotero-focused skill only if the user mainly asks for long-running library curation, duplicate cleanup, collection restructuring, or tag taxonomy maintenance without reading papers.
 
@@ -29,8 +29,8 @@ Default to one management workflow. Split work into a separate Zotero-focused sk
    - Do not invent missing metadata. Mark unknown fields explicitly.
 
 3. Read and summarize with a subagent.
-   - Always spawn a fresh subagent for paper reading tasks. Use `fork_context=false`; do not reuse the main conversation as the reading context.
-   - This is a hard gate. If a fresh `fork_context=false` subagent is unavailable, do not create or update `note.md`; report the blocker and stop before producing a reading note.
+   - Always spawn a fresh subagent for paper reading tasks with no inherited conversation context; do not reuse the main conversation as the reading context.
+   - This is a hard gate. If a fresh isolated subagent is unavailable, do not create or update `note.md`; report the blocker and stop before producing a reading note.
    - For batches, spawn one independent subagent per paper. A subagent must not read or summarize multiple papers unless the user explicitly asks for a cross-paper comparison.
    - Pass only the paper source, verified metadata, and the exact reading prompt. Do not pass unrelated project chat history, previous notes, earlier summaries, or the main thread's conclusions.
    - Explicitly instruct the subagent not to read existing `note.md`, `retrieval.md`, `metadata.json`, prior generated reports, or any previous conversation context. The subagent should read the PDF/source itself.
@@ -40,16 +40,16 @@ Default to one management workflow. Split work into a separate Zotero-focused sk
    - Require claims to be grounded in the paper text. Separate paper claims from the reader's interpretation.
    - The subagent reading report is the source of truth for `note.md`. Do not prepend YAML frontmatter, metadata blocks, prompt text, tags, index entries, or extra sections to `note.md`.
    - Preserve the reading report's section order and heading structure from `references/reading-report-prompt.md`; the body may be Chinese because the prompt requests Chinese output.
-   - Ensure `## 0. Concise Summary` includes `Topic`, `Problem`, `Method`, `Innovation`, `Significance`, and one `**One-sentence summary**: ...` line. The entire reading report must be written in Chinese, including the one-sentence summary. The summary must be a concise Chinese one-sentence overview of the paper, not a mechanical merge of the five fields.
+   - Ensure `## 0. Concise Summary` includes `Topic`, `Problem`, `Method`, `Innovation`, `Significance`, and exactly one `**One-sentence summary**:` line. The entire reading report must be written in Chinese.
    - Record the isolated reading provenance in `metadata.json` when possible: `reading_agent_isolated: true`, `reading_agent_fork_context: false`, and the subagent id/name if available.
 
 4. Organize files locally.
-   - Use `scripts/organize_paper.py` to create a stable folder with `metadata.json`, `note.md`, optional `retrieval.md`, and optional `figures/` images.
+   - Use `scripts/organize_paper.py` to create a stable folder with `metadata.json`, `note.md`, and optional `retrieval.md`. Do not create or populate a `figures/` directory.
    - Keep machine-readable fields only in `metadata.json`. Do not duplicate them as Markdown frontmatter in `note.md` or `retrieval.md`.
    - Put exactly four front-link fields before `## 0. Concise Summary` in `note.md`, separated from the report by `---`: `Title`, `Paper link`, `Web/project link`, and `GitHub link`.
    - Put exactly the same four fields before `## Core Content` in `retrieval.md`: `Title`, `Paper link`, `Web/project link`, and `GitHub link`.
    - Build `## Core Content` by extracting `Topic`, `Problem`, `Method`, `Innovation`, and `Significance` from section `0. Concise Summary` of the generated report. Do not independently rewrite these fields unless extraction fails.
-   - Store the overview sentence in `metadata.json` as `one_sentence_summary`; `organize_paper.py` can synthesize a fallback from available metadata when the report does not include it.
+   - Extract the five concise-summary fields and the one-sentence summary into `metadata.json`. Never add a missing `One-sentence summary` line to `note.md`; the isolated reading report must supply it.
    - Put other useful bibliographic/management fields after `## Core Content`, under a secondary metadata section. This can include authors, publication, date, identifiers, PDF path, Zotero key, BibTeX key, and note path. Do not put tags or index-entry prose in `retrieval.md`.
    - Do not copy PDFs by default. Record the Zotero PDF path or source URL in metadata. Copy a PDF only when the user asks or when `--copy-pdf` is explicitly used.
    - Default local note root is `${PAPER_LIBRARY_ROOT:-$HOME/paper}`. The user may override it with `PAPER_LIBRARY_ROOT` or `--library-root`.
@@ -64,15 +64,15 @@ Default to one management workflow. Split work into a separate Zotero-focused sk
    - Reads/search/export are safe.
    - For this skill, a user request to read and organize a paper implies permission to add the paper to Zotero when missing and to apply reading-management tags generated from the note, unless the user asks for dry-run/no-write behavior.
    - When a paper has a verified formal publication newer than its imported arXiv/preprint record, prefer updating Zotero's bibliographic metadata to the formal record. For conference papers, use Zotero item type `conferencePaper`, set `conferenceName` to the compact venue label such as `ICLR 2026`, set `proceedingsTitle` to the full venue name when known, and keep arXiv information in DOI/archive/extra fields when useful.
-   - Keep Zotero tags lightweight and user-facing. Unless the user explicitly asks for a different tag taxonomy, each Zotero item must have exactly two Zotero-facing hashtag tags:
+   - Keep Zotero tags lightweight and user-facing. Unless the user explicitly asks for a different tag taxonomy, replace all existing Zotero tags so each item has exactly two Zotero-facing hashtag tags:
      1. one kind tag: `#会议论文`, `#期刊论文`, `#预印本`, or `#网页资料`;
      2. one venue/source/version tag: for example `#NeurIPS 2025`, `#ICLR 2026`, `#arXiv 2026`, `#TMLR 2024`, or a compact web/source label such as `#Anthropic`.
-     Do not mirror collection/project tags such as `#Embodied Agent`, and do not mirror detailed `domain_tags`, `method_tags`, `project_tags`, or free-form topic/search tags into Zotero. Keep those detailed tags only in local `metadata.json`.
+     Remove legacy and unrelated Zotero tags during confirmed sync. Do not mirror collection/project tags such as `#Embodied Agent`, and do not mirror detailed `domain_tags`, `method_tags`, `project_tags`, or free-form topic/search tags into Zotero. Keep those detailed tags only in local `metadata.json`.
    - Zotero's local `/api/` routes are read-only. For writes, prefer a Zotero MCP/write bridge or connector import. Change item type only through Zotero-supported write tools or an explicitly requested, backed-up local database migration.
    - For broad library cleanup, duplicate removal, collection restructuring, or destructive changes, show the planned item keys and changes first.
    - Use the Zotero helper for search, export, import-bibtex/import-ris, children, fulltext, and file-url.
-   - Use `scripts/zotero_sync_note.py` to sync `metadata.one_sentence_summary` into Zotero Style 简记, stored as a `remark:` line in Zotero `Extra`. Preserve all existing non-`remark:` lines in `Extra`; do not write the overview into `abstractNote`. The script is dry-run by default; pass `--yes` only after confirming the target item. Use `--sync-tags` when also mirroring `metadata.zotero_tags`.
-   - Use `scripts/zotero_tag_items.py` for tag add/remove/replace dry-runs and confirmed tag edits.
+   - Use `scripts/zotero_sync_note.py` to sync `metadata.one_sentence_summary` into Zotero Style 简记, stored as a `remark:` line in Zotero `Extra`. Preserve all existing non-`remark:` lines in `Extra`; do not write the overview into `abstractNote`. The script is dry-run by default; pass `--yes` only after confirming the target item. With `--sync-tags`, require exactly two `metadata.zotero_tags` and replace all existing Zotero tags with them.
+   - Use `scripts/zotero_tag_items.py --set` to replace all tags, or its add/remove/replace modes for explicitly requested ad hoc edits.
 
 6. Return a concise handoff.
    - Include local folder path, paper source, Zotero item key if any, tags added/planned, and the `note.md` path.
@@ -122,23 +122,21 @@ Get a Zotero PDF path:
 python3 <skill-dir>/scripts/zotero_pdf_path.py <zotero-item-key> --first
 ```
 
-Insert figure/table screenshots into `note.md` when helpful:
+## Figure/Table Placeholders
 
-```bash
-python3 <skill-dir>/scripts/pdf_figure_snapshot.py \
-  --pdf "<zotero-pdf-path>" \
-  --page 3 \
-  --out "<paper-folder>/figures/fig-2.png"
-```
+Never extract, render, crop, save, or embed paper figures/tables/screenshots in `note.md`. Immediately after the paragraph that discusses a significant original figure/table, keep one placeholder for the user to replace manually later.
 
-Then reference it in the relevant note section:
+Use exactly:
 
 ```markdown
-![Figure 2: System architecture](figures/fig-2.png)
+<!-- figure: Figure 2 -->
 ```
 
-For precise crops, pass `--bbox "x0,top,x1,bottom"` in PDF points. If exact crop coordinates are not known, render the full relevant page and note what to inspect.
-For final notes, use cropped figure/table regions, not full-page screenshots. Full-page screenshots are only a fallback when cropping is impractical; name them as page snapshots and state that they are page snapshots. If the note body explicitly explains a Figure/Table, insert that image immediately after the relevant paragraph. If a Figure/Table is not discussed in the main body but is still worth keeping, put it after `## 6. Additional Notes` in `## 7. Figures and Tables`, split into `### 7.1 Figures` and `### 7.2 Tables`, with a brief explanation. Do not mention a figure/table in `## 3. Main Content` while placing its image only in section 7. Do not duplicate a full figure/table laundry list in `## 6. Additional Notes`.
+```markdown
+<!-- table: Table 1 -->
+```
+
+Omit minor figures/tables and do not add a separate screenshot appendix.
 
 ## Mandatory Figure/Table and Isolation Audit
 
@@ -157,27 +155,26 @@ python3 <skill-dir>/scripts/audit_reading_packet.py \
   - Confirm one subagent handled exactly one paper.
   - Confirm `note.md` was integrated from that subagent report, not synthesized from previous notes or main-thread history.
 - Note structure:
-  - Exactly one `**One-sentence summary**:` line.
+  - Exactly one `**One-sentence summary**:` line under `## 0. Concise Summary`.
   - Required headings exist in the exact order from `references/reading-output-template.md`.
-  - No unprocessed `<!-- figure: ... -->` or `<!-- table: ... -->` markers remain after integration.
 - Figure/table completeness:
-  - Every Figure/Table that the note explicitly discusses must have a local image inserted immediately after the relevant explanation.
-  - Every inserted image path must exist under that paper's `figures/` directory.
-  - Prefer cropped regions for each figure/table. If a full-page fallback is used, the note must label it clearly as a page snapshot.
-  - Do not mention a Figure/Table in prose and omit its image. If a figure/table is not important enough to include, do not discuss it as a highlighted figure/table.
+  - Every Figure/Table that the note explicitly discusses must have a matching nearby `<!-- figure: Figure X -->` or `<!-- table: Table X -->` marker.
+  - Keep the markers in `note.md` for the user's later manual image insertion.
+  - `note.md` must not contain Markdown image embeds or local screenshots.
+  - Do not mention a Figure/Table in prose and omit its marker. If it is not important enough to mark, do not highlight it.
 - Batch integrity:
   - Run the audit across all target folders, not just one example.
   - Update `INDEX.md` only after the per-paper audits pass.
 
 ## Zotero Tag Editing
 
-Dry-run first. Use only the two Zotero-facing hashtag tags for normal paper reading packets; keep detailed technical tags in local metadata fields:
+Dry-run first. Replace all Zotero tags with exactly the two Zotero-facing hashtag tags; keep detailed technical tags in local metadata fields:
 
 ```bash
 python3 <skill-dir>/scripts/zotero_tag_items.py \
   --item-key UKRJFRVC \
-  --add "#会议论文" \
-  --add "#CVPR 2026" \
+  --set "#会议论文" \
+  --set "#CVPR 2026" \
   --dry-run
 ```
 
@@ -186,12 +183,12 @@ Write only after confirmation:
 ```bash
 python3 <skill-dir>/scripts/zotero_tag_items.py \
   --item-key UKRJFRVC \
-  --add "#会议论文" \
-  --add "#CVPR 2026" \
+  --set "#会议论文" \
+  --set "#CVPR 2026" \
   --yes
 ```
 
-For tag renames on specific items, use `--replace "old tag=new tag"`. For removing tags, use `--remove "<tag>"`. Avoid global tag deletion unless the user asks for global cleanup and the affected items have been shown.
+For normal reading packets, use `--set` so no legacy tags remain. For explicitly requested ad hoc edits, use `--replace "old tag=new tag"` or `--remove "<tag>"`. Avoid library-wide cleanup unless the affected item keys have been shown.
 
 Sync the one-sentence summary to Zotero Style 简记 (`remark:` in `Extra`):
 
@@ -218,7 +215,7 @@ python3 <skill-dir>/scripts/diagnose.py
 
 ## Output Shape
 
-Use `references/reading-report-prompt.md` for the exact subagent reading prompt, `references/reading-output-template.md` for the local `note.md` shape, `retrieval.md` for per-paper quick search cards, and root `INDEX.md` for the tree directory. `note.md` is a pure reading report plus the allowed `One-sentence summary` line; `retrieval.md` is a concise search card; `metadata.json` is the only machine-readable metadata store. For paper batches, keep final chat output compact and point to created files instead of pasting every summary.
+Use `references/reading-report-prompt.md` for the exact subagent reading prompt, `references/reading-output-template.md` for the local `note.md` shape, `retrieval.md` for per-paper quick search cards, and root `INDEX.md` for the tree directory. `note.md` is the reading report with exactly one one-sentence summary supplied by the subagent; `retrieval.md` is a concise search card; `metadata.json` is the only machine-readable metadata store. For paper batches, keep final chat output compact and point to created files instead of pasting every summary.
 
 ## Safety Rules
 

@@ -107,22 +107,6 @@ def build_one_sentence_summary(metadata: dict[str, object]) -> str:
     return f"{title}聚焦{topic}，并通过{method}解决相关研究问题。"
 
 
-def has_one_sentence_summary(report: str) -> bool:
-    return bool(re.search(r"(一句话总结|One-sentence summary)", report, flags=re.IGNORECASE))
-
-
-def insert_one_sentence_summary(report: str, one_sentence_summary: str) -> str:
-    if not report or not one_sentence_summary or has_one_sentence_summary(report):
-        return report
-    line = f"- **One-sentence summary**: {one_sentence_summary}"
-    next_section = re.search(r"(?m)^##\s+1\.\s+Motivation\b", report)
-    if next_section:
-        before = report[: next_section.start()].rstrip()
-        after = report[next_section.start() :].lstrip()
-        return f"{before}\n\n{line}\n\n{after}".rstrip() + "\n"
-    return report.rstrip() + "\n\n" + line + "\n"
-
-
 def unique(values: list[str]) -> list[str]:
     result: list[str] = []
     for value in values:
@@ -144,7 +128,6 @@ def front_link_block(metadata: dict[str, object]) -> str:
 
 
 def add_note_front_links(summary: str, metadata: dict[str, object]) -> str:
-    summary = insert_one_sentence_summary(summary, str(metadata.get("one_sentence_summary") or ""))
     block = front_link_block(metadata)
     if not summary:
         return ""

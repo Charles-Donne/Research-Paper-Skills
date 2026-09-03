@@ -15,10 +15,9 @@ ${PAPER_LIBRARY_ROOT:-$HOME/paper}/
         metadata.json
         note.md
         retrieval.md  # optional
-        figures/
 ```
 
-Use Zotero as the paper/PDF library. Use `note.md` as the human reading note, `retrieval.md` as an optional compact search card, and `figures/` only for selected figure/table screenshots inserted into notes.
+Use Zotero as the paper/PDF library. Use `note.md` as the human reading note and `retrieval.md` as an optional compact search card. For figures and tables, `note.md` keeps only manual insertion markers and never embeds screenshots.
 
 ## Dataview Metadata Source
 

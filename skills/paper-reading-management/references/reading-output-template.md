@@ -42,32 +42,24 @@
 ## 6. Additional Notes
 ```
 
-Optional figure/table appendix, add only when a useful figure/table is not already discussed and inserted in the main body:
+Do not add YAML frontmatter, metadata blocks, prompt text, tags, or index entries to `note.md`. Store machine-readable fields in `metadata.json`; store the concise search card in `retrieval.md`.
+
+Never add paper screenshots, local image files, Markdown image embeds, a `figures/` folder, or a separate figure/table appendix. Immediately after discussing a significant figure or table, keep one marker for the reader's later manual image insertion:
 
 ```markdown
-## 7. Figures and Tables
-
-### 7.1 Figures
-
-### 7.2 Tables
+<!-- figure: Figure X -->
 ```
-
-Do not add YAML frontmatter, metadata blocks, prompt text, tags, or index entries to `note.md`. Store machine-readable fields in `metadata.json`; store the concise search card in `retrieval.md`. The `One-sentence summary` line is allowed in `note.md` and is mirrored to Zotero Style 简记 as a `remark:` line in Zotero `Extra` when `zotero_sync_note.py --yes` is used.
-
-When adding images, replace exact figure/table markers from the generated report with cropped local images:
 
 ```markdown
-![Figure X](figures/fig-x.png)
+<!-- table: Table X -->
 ```
 
-If the report body explicitly explains a Figure/Table, insert the cropped image immediately after that paragraph. All `<!-- figure: ... -->` and `<!-- table: ... -->` markers from the generated report must be replaced before completion; leaving markers in `note.md` is an audit failure.
-
-Put only figures/tables that are not discussed in the main body into `## 7. Figures and Tables`, split into `### 7.1 Figures` and `### 7.2 Tables`, with a short explanation for each. Avoid duplicating a full figure/table list in `## 6. Additional Notes`.
+Do not replace or remove these markers during note integration. Do not duplicate a full figure/table list in `## 6. Additional Notes`.
 
 Audit before handoff:
 
 - The reading report came from one fresh isolated subagent for this paper.
-- `note.md` has exactly one `**One-sentence summary**:` line.
-- Every discussed Figure/Table has a local image inserted nearby.
-- Every image path exists under this paper folder.
-- Cropped figure/table regions are preferred; full-page snapshots are allowed only as labeled fallbacks.
+- `note.md` contains exactly one `**One-sentence summary**:` line under `## 0. Concise Summary`.
+- Every discussed Figure/Table has a matching nearby marker.
+- Markers use exactly `<!-- figure: Figure X -->` or `<!-- table: Table X -->`.
+- The note contains no Markdown image embeds or local screenshots.

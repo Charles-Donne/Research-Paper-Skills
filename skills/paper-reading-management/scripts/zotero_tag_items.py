@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Add, remove, or replace tags on Zotero local API items."""
+"""Set, add, remove, or replace tags on Zotero local API items."""
 
 from __future__ import annotations
 
@@ -47,12 +47,16 @@ def main() -> int:
     parser.add_argument("--add", action="append", default=[])
     parser.add_argument("--remove", action="append", default=[])
     parser.add_argument("--replace", action="append", default=[], help="OLD=NEW; repeat as needed")
+    parser.add_argument("--set", action="append", default=[], help="Replace all tags; repeat for each desired tag")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--yes", action="store_true", help="Confirm Zotero write")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
 
+    if args.set and (args.add or args.remove or args.replace):
+        raise SystemExit("Use --set by itself; do not combine it with --add/--remove/--replace.")
     replacements = parse_replace(args.replace)
+    exact_tags = list(dict.fromkeys(tag for tag in args.set if tag))
     changes = []
 
     for key in args.item_key:
@@ -60,7 +64,7 @@ def main() -> int:
         data = item.get("data", {})
         current_objects = data.get("tags") or []
         current = tag_names(current_objects)
-        updated = planned_tags(current, args.add, args.remove, replacements)
+        updated = exact_tags if args.set else planned_tags(current, args.add, args.remove, replacements)
         change = {
             "item_key": key,
             "title": data.get("title"),

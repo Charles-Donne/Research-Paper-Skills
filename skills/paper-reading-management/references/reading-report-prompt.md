@@ -14,14 +14,14 @@ For the assigned paper, provide a detailed explanation that includes the followi
      **Method** — the proposed approach or framework;
      **Innovation** — what is new compared with prior work;
      **Significance** — why the work matters and what value it brings.
-	- The goal is to help readers quickly understand what the paper is about, what problem it solves, how it solves it, what is novel, and why it is important.
-	  **One-sentence summary** - a concise Chinese one-sentence overview of the paper.
+   - The goal is to help readers quickly understand what the paper is about, what problem it solves, how it solves it, what is novel, and why it is important.
+   - Include exactly one `**One-sentence summary**:` line with a concise Chinese overview of the paper.
 
 1. **Motivation**:  
    - Clearly explain the motivation behind the research. What problem or gap in the field does the paper aim to address? Why is this problem important? What is the challenge?
 
 2. **Innovation**:  
-   - Identify and describe the key innovations or novel contributions of the paper. What new methods, techniques, or approaches does the paper propose? How do they differ from existing solutions? What can be benefited from it? Why it can work and solve problem？ 
+   - Identify and describe the key innovations or novel contributions of the paper. What new methods, techniques, or approaches does the paper propose? How do they differ from existing solutions? What can be benefited from it? Why it can work and solve problem?
 
 3. **Main Content**: **( CRITICAL FOCUS )**  
    Provide a detailed explanation of the article content, with elaborating on the following five aspects:
@@ -55,8 +55,8 @@ For the assigned paper, provide a detailed explanation that includes the followi
 
 4. **Significance and Impact**:  
    - Discuss the potential impact of the paper on the field of AI. What problems have been solved and what are the contributions?
-   - How might this work influence future research or applications? What can be benefited from it in the subsequent work？
-   - Mention any limitations or open questions raised by the authors. What else can future work do？
+   - How might this work influence future research or applications? What can be benefited from it in the subsequent work?
+   - Mention any limitations or open questions raised by the authors. What else can future work do?
 
 5. **Clarifications and Simplifications**:  
    - If any part of the paper is highly technical or complex, provide simplified explanations or analogies to help me understand the concepts better.  
@@ -68,22 +68,12 @@ For the assigned paper, provide a detailed explanation that includes the followi
 
 Please ensure your explanations are clear, concise. If you encounter ambiguous or unclear parts of the paper, make reasonable assumptions and note them in your response. Please reply in Chinese and output in markdown format. For mathematical formulas, please output in LaTeX format and add a "$" or "$$" symbol at the beginning and end of each formula to correctly compile.
 
-Figures and Tables are the most important tools for understanding the paper. Incorporate insights from every significant Figure and Table into your explanation. Mention every significant figure and table.
+Figures and tables:
+- Explain every significant Figure/Table in the most relevant section.
+- Immediately after its explanation, add `<!-- figure: Figure X -->` or `<!-- table: Table X -->`.
+- Keep these markers for the reader's later manual image insertion; do not create or embed images. Omit minor items.
 
-When you discuss a Figure/Table, the final note integrator will replace your marker with a local image. Therefore:
-- Place the marker immediately after the paragraph that explains the Figure/Table.
-- Do not discuss a significant Figure/Table without adding the corresponding marker.
-- If a Figure/Table is minor and not worth inserting as an image, do not highlight it as an important Figure/Table in prose.
-- Include enough context in the paragraph so the figure/table image is meaningful to a later reader.
-
-Output constraints:
-- Keep the section order and heading names exactly aligned with the requested structure above: `0. Concise Summary`, `1. Motivation`, `2. Innovation`, `3. Main Content`, `4. Significance and Impact`, `5. Clarifications and Simplifications`, and `6. Additional Notes`.
-- Keep the five subsection headings under `3. Main Content` exactly as:
-  `### 3.1 Design Architecture & Methods`,
-  `### 3.2 Key Algorithms & Mathematical Derivations`,
-  `### 3.3 Models & Training & Dataset`,
-  `### 3.4 Experimental Setup & Results`,
-  and `### 3.5 Technical Details`.
+Output format:
+- Keep sections `0`–`6` and subsections `3.1`–`3.5` in the exact order and with the exact headings specified above.
 - Under `0. Concise Summary`, include `Topic`, `Problem`, `Method`, `Innovation`, `Significance`, and exactly one `**One-sentence summary**:` line.
-- Mention every significant figure and table in the most relevant section instead of appending a separate screenshot dump at the end.
-- When discussing a significant figure or table, place a standalone marker immediately after the relevant explanation using this exact form: `<!-- figure: Figure X -->` or `<!-- table: Table X -->`. 
+- Place figure/table discussion in the relevant section; do not add a separate screenshot appendix.

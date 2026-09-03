@@ -17,7 +17,6 @@ from organize_paper import (
     build_one_sentence_summary,
     extract_core_content,
     extract_one_sentence_summary,
-    insert_one_sentence_summary,
 )
 
 
@@ -185,8 +184,6 @@ def build_content(metadata: dict[str, Any], metadata_path: Path) -> str:
         metadata["one_sentence_summary"] = ""
         one_sentence = build_one_sentence_summary(metadata)
     metadata["one_sentence_summary"] = one_sentence
-    note = insert_one_sentence_summary(note, one_sentence)
-
     title = str(metadata.get("title") or metadata.get("short_title") or "Untitled Paper")
     content = [
         f"# {title}",

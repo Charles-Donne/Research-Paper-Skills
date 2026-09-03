@@ -17,7 +17,6 @@ ${PAPER_LIBRARY_ROOT:-$HOME/paper}/
         metadata.json
         note.md
         retrieval.md
-        figures/
 ```
 
 Example:
@@ -31,7 +30,6 @@ ${PAPER_LIBRARY_ROOT:-$HOME/paper}/
         metadata.json
         note.md
         retrieval.md
-        figures/
 ```
 
 ## Zotero Collection Mapping
@@ -51,7 +49,7 @@ If the item is not in any collection, use `Unfiled`.
 - `metadata.json`: machine-readable record for scripts and optional sync; not meant for daily reading.
 - `note.md`: the full human reading note produced from the mandatory subagent reading report.
 - `retrieval.md`: optional per-paper quick retrieval card with publication information, official links, and the one-sentence retrieval cue.
-- `figures/`: optional screenshots cropped/rendered from the Zotero PDF and embedded in `note.md`.
+- Figure/table placeholders remain directly beside the relevant explanation in `note.md`; the reader inserts screenshots manually, and this workflow never generates or embeds them.
 - `INDEX.md`: root tree directory only. Keep it minimal: Zotero collection path plus paper short title/version linking to `note.md`.
 
 ## Naming

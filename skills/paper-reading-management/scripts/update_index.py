@@ -31,7 +31,11 @@ def load_records(root: Path) -> list[dict]:
 
 
 def md_link(label: str, rel_path: str) -> str:
-    return f"[{label}]({rel_path})" if rel_path else ""
+    if not rel_path:
+        return ""
+    target = rel_path[:-3] if rel_path.endswith(".md") else rel_path
+    safe_label = label.replace("|", "／")
+    return f"[[{target}|{safe_label}]]"
 
 
 def build_index_md(root: Path, records: list[dict]) -> str:

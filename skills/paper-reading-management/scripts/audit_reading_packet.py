@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Audit paper-reading packets for isolated-reading and figure/table hygiene."""
+"""Audit paper-reading packets for isolated reading and manual figure/table markers."""
 
 from __future__ import annotations
 
@@ -34,14 +34,43 @@ def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def image_links(markdown: str) -> list[str]:
-    return re.findall(r"!\[[^\]]*\]\(([^)]+)\)", markdown)
+MENTION_PATTERN = re.compile(
+    r"\b(?P<english>Fig\.?|Figure|Table)\s*(?P<english_number>\d+[A-Za-z]?)\b|(?P<chinese>图|表)\s*(?P<chinese_number>\d+[A-Za-z]?)",
+    re.IGNORECASE,
+)
+MARKER_PATTERN = re.compile(
+    r"<!--\s*(?P<kind>figure|table)\s*:\s*"
+    r"(?P<label>(?:Fig\.?|Figure|Table)\s*\d+[A-Za-z]?)\s*-->",
+    re.IGNORECASE,
+)
 
 
-def explicit_figure_table_mentions(markdown: str) -> list[str]:
-    # English labels are most common in papers; keep Chinese labels too.
-    pattern = re.compile(r"\b(?:Fig\.?|Figure|Table)\s*\d+[A-Za-z]?\b|图\s*\d+|表\s*\d+", re.IGNORECASE)
-    return pattern.findall(markdown)
+def canonical_label(label: str) -> str:
+    """Normalize English/Chinese figure-table labels for matching."""
+    match = MENTION_PATTERN.search(label)
+    if not match:
+        return ""
+    if match.group("english"):
+        kind = "table" if match.group("english").lower() == "table" else "figure"
+        number = match.group("english_number")
+    else:
+        kind = "figure" if match.group("chinese") == "图" else "table"
+        number = match.group("chinese_number")
+    return f"{kind}:{number.lower()}"
+
+
+def explicit_figure_table_mentions(markdown: str) -> set[str]:
+    return {canonical_label(match.group(0)) for match in MENTION_PATTERN.finditer(markdown)} - {""}
+
+
+def marker_labels(markdown: str) -> dict[str, str]:
+    markers: dict[str, str] = {}
+    for match in MARKER_PATTERN.finditer(markdown):
+        label = canonical_label(match.group("label"))
+        if not label:
+            continue
+        markers[label] = match.group("kind").lower()
+    return markers
 
 
 def audit_folder(folder: Path, require_isolated: bool) -> dict:
@@ -82,41 +111,31 @@ def audit_folder(folder: Path, require_isolated: bool) -> dict:
     if present_positions != sorted(present_positions):
         problems.append("required headings are out of order")
 
-    one_sentence_count = len(re.findall(r"\*\*One-sentence summary\*\*:", text))
+    one_sentence_pattern = r"(?m)^\s*(?:[-*]\s*)?\*\*One-sentence summary\*\*\s*[:：]"
+    one_sentence_count = len(re.findall(one_sentence_pattern, text, flags=re.IGNORECASE))
     if one_sentence_count != 1:
-        problems.append(f"expected exactly one One-sentence summary, found {one_sentence_count}")
-
-    unresolved = re.findall(r"<!--\s*(?:figure|table):.*?-->", text, flags=re.IGNORECASE)
-    if unresolved:
-        problems.append(f"unresolved figure/table markers: {len(unresolved)}")
-
-    links = image_links(text)
-    missing_images = [link for link in links if not (folder / link).exists()]
-    if missing_images:
-        problems.append(f"missing image files: {missing_images}")
-    figures_dir = (folder / "figures").resolve()
-    outside_figures = []
-    for link in links:
-        try:
-            (folder / link).resolve().relative_to(figures_dir)
-        except ValueError:
-            outside_figures.append(link)
-    if outside_figures:
-        problems.append(f"image files outside figures/: {outside_figures}")
+        problems.append(f"expected exactly one One-sentence summary line, found {one_sentence_count}")
+    else:
+        summary_start = text.find("## 0. Concise Summary")
+        summary_end = text.find("## 1. Motivation")
+        summary_section = text[summary_start:summary_end] if summary_start >= 0 and summary_end > summary_start else ""
+        if not re.search(one_sentence_pattern, summary_section, flags=re.IGNORECASE):
+            problems.append("One-sentence summary must be under 0. Concise Summary")
 
     mentions = explicit_figure_table_mentions(text)
-    if mentions and not links:
-        problems.append("note mentions figures/tables but contains no image links")
-    if len(links) < len(set(mentions)) and mentions:
-        warnings.append(
-            f"image count ({len(links)}) is lower than unique figure/table mention count ({len(set(mentions))}); inspect manually"
-        )
+    markers = marker_labels(text)
+    embedded_images = re.findall(r"!\[[^\]]*\]\([^)]+\)", text)
+    if embedded_images:
+        problems.append(f"note contains Markdown image embeds ({len(embedded_images)})")
 
-    page_snapshots = [link for link in links if Path(link).name.startswith("page-")]
-    if page_snapshots:
-        warnings.append(
-            f"full-page snapshot fallbacks detected ({len(page_snapshots)}); prefer cropped figure/table regions"
-        )
+    for label in sorted(mentions):
+        marker_kind = markers.get(label)
+        if not marker_kind:
+            problems.append(f"missing manual insertion marker for {label}")
+            continue
+        expected_kind = "figure" if label.startswith("figure:") else "table"
+        if marker_kind != expected_kind:
+            problems.append(f"wrong marker kind for {label}: {marker_kind}")
 
     if require_isolated:
         if metadata.get("reading_agent_isolated") is not True:
@@ -129,7 +148,7 @@ def audit_folder(folder: Path, require_isolated: bool) -> dict:
         "ok": not problems,
         "problems": problems,
         "warnings": warnings,
-        "images": len(links),
+        "markers": len(markers),
         "mentions": len(mentions),
         "reading_agent_id": metadata.get("reading_agent_id") or "",
     }

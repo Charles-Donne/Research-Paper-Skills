@@ -13,6 +13,7 @@ from zotero_api import load_item, write_metadata, write_tags
 
 
 CORE_FIELDS = ("topic", "problem", "method", "innovation", "significance")
+KIND_TAGS = {"#会议论文", "#期刊论文", "#预印本", "#网页资料"}
 
 
 def load_metadata(path: str | None, folder: str | None) -> tuple[dict, Path | None]:
@@ -109,19 +110,23 @@ def tag_names(tags: list[dict]) -> list[str]:
     return names
 
 
-def desired_zotero_tags(metadata: dict, extra_tags: list[str]) -> list[str]:
+def desired_zotero_tags(metadata: dict) -> list[str]:
     tags: list[str] = []
-    for key in ("zotero_tags",):
-        value = metadata.get(key) or []
-        if isinstance(value, str):
-            value = [value]
-        for tag in value:
-            if tag and tag not in tags:
-                tags.append(str(tag))
-    for tag in extra_tags:
+    value = metadata.get("zotero_tags") or []
+    if isinstance(value, str):
+        value = [value]
+    for tag in value:
         if tag and tag not in tags:
-            tags.append(tag)
-    return tags
+            tags.append(str(tag))
+    if len(tags) != 2:
+        raise SystemExit("metadata.zotero_tags must contain exactly two unique tags.")
+    kind_tags = [tag for tag in tags if tag in KIND_TAGS]
+    source_tags = [tag for tag in tags if tag not in KIND_TAGS and tag.startswith("#")]
+    if len(kind_tags) != 1 or len(source_tags) != 1:
+        raise SystemExit(
+            "metadata.zotero_tags must contain one kind tag and one #venue/source/version tag."
+        )
+    return [kind_tags[0], source_tags[0]]
 
 
 def upsert_remark(extra: object, summary: str) -> str:
@@ -141,8 +146,11 @@ def main() -> int:
     parser.add_argument("--paper-folder", help="Paper folder containing metadata.json")
     parser.add_argument("--item-key", help="Override Zotero item key")
     parser.add_argument("--summary", help="Override one-sentence summary")
-    parser.add_argument("--sync-tags", action="store_true", help="Also add metadata.zotero_tags to the item")
-    parser.add_argument("--tag", action="append", default=[], help="Extra Zotero tag to add with --sync-tags")
+    parser.add_argument(
+        "--sync-tags",
+        action="store_true",
+        help="Replace all item tags with exactly the two metadata.zotero_tags",
+    )
     parser.add_argument("--yes", action="store_true", help="Write to Zotero")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
@@ -165,11 +173,7 @@ def main() -> int:
         raise SystemExit("Could not determine one-sentence summary from metadata or note.md.")
 
     current_tags = tag_names(data.get("tags") or [])
-    target_tags = list(current_tags)
-    if args.sync_tags:
-        for tag in desired_zotero_tags(metadata, args.tag):
-            if tag not in target_tags:
-                target_tags.append(tag)
+    target_tags = desired_zotero_tags(metadata) if args.sync_tags else list(current_tags)
 
     extra_before = data.get("extra") or ""
     extra_after = upsert_remark(extra_before, summary)
@@ -197,6 +201,8 @@ def main() -> int:
         write_tags(item_key, target_tags)
     if metadata_path is not None:
         metadata["zotero_remark_synced_at"] = datetime.now().isoformat(timespec="seconds")
+        if args.sync_tags:
+            metadata["zotero_tags_synced_at"] = metadata["zotero_remark_synced_at"]
         metadata_path.write_text(json.dumps(metadata, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return 0
 
